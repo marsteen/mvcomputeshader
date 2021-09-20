@@ -44,6 +44,23 @@ void CShaderTool::checkErrors(std::string desc)
 	}
 }
 
+
+static void showShaderCompileError(GLuint shader)
+{
+	int infoLen;
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
+	if (infoLen)
+	{
+		char* buf = (char*) malloc(infoLen);
+		if (buf)
+		{
+			glGetShaderInfoLog(shader, infoLen, NULL, buf);
+			cout << "Could not compile shader. Error: " << buf << endl;
+			free(buf);
+		}
+	}
+}
+
 //---------------------------------------------------------------------------
 //
 // Klasse:    CShaderTool
@@ -84,7 +101,9 @@ GLuint CShaderTool::genRenderProg(GLuint texHandle)
     glCompileShader(vp);
     int rvalue;
     glGetShaderiv(vp, GL_COMPILE_STATUS, &rvalue);
-    if (!rvalue) {
+    if (!rvalue)
+    {
+    	showShaderCompileError(vp);
         fprintf(stderr, "Error in compiling vp\n");
         exit(30);
     }
@@ -92,7 +111,9 @@ GLuint CShaderTool::genRenderProg(GLuint texHandle)
 
     glCompileShader(fp);
     glGetShaderiv(fp, GL_COMPILE_STATUS, &rvalue);
-    if (!rvalue) {
+    if (!rvalue)
+    {
+		showShaderCompileError(fp);
         fprintf(stderr, "Error in compiling fp\n");
         exit(31);
     }
@@ -205,21 +226,23 @@ GLuint CShaderTool::genComputeProg(GLuint texHandle)
 GLuint CShaderTool::genTexture() 
 {
 	// We create a single float channel 512^2 texture
+	glewInit();
 	GLuint texHandle;
 	glGenTextures(1, &texHandle);
 	
-	cout << "glGenTextures ok:" << texHandle << endl;
+	cout << "glGenTextures ok texture handle=" << texHandle << endl;
 	glActiveTexture(GL_TEXTURE0);
 	cout << "glActiveTexture ok" << endl;
 	glBindTexture(GL_TEXTURE_2D, texHandle);
 	cout << "glBindTexture ok" << endl;
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 512, 512, 0, GL_RED, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 512, 512 , 0, GL_RED, GL_FLOAT, NULL);
+	cout << "glTexImage2D ok" << endl;
 
 	// Because we're also using this tex as an image (in order to write to it),
 	// we bind it to an image unit as well
-	glBindImageTexture(0, texHandle, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_R32F);
+	glBindImageTexture(0, texHandle, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R32F);
 	cout << "glBindImageTexture ok" << endl;
 	checkErrors("Gen texture");	
 	return texHandle;
