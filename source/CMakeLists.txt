@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project("mvcomputeshader")
 
-include_directories(./source/include  ./source)
 
 
 message("System: ${CMAKE_SYSTEM_NAME}")
@@ -25,15 +24,7 @@ message("System: ${CMAKE_SYSTEM_NAME}")
 #    link_libraries(${OPENGL_LIBRARIES})
 #endif()
 
-#
-# GLEW
-#
-find_package(GLEW REQUIRED)
-if (GLEW_FOUND)
-    message("found GLEW")
-    include_directories($(GLEW_INCLUDE_DIRS))
-    link_libraries(${GLEW_LIBRARIES})
-endif()
+
 
 #
 # GLFW
@@ -55,7 +46,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "MSYS")
     #
     # Windows
     #
-    target_link_libraries(mvcomputeshader
+    target_link_libraries(${CMAKE_PROJECT_NAME}
         opengl32
         glu32
         glfw3)
@@ -63,7 +54,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     #
     # Linux
     #
-    target_link_libraries(mvcomputeshader
+    target_link_libraries(${CMAKE_PROJECT_NAME}
         SDL2 
         GL
         GLEW)
@@ -71,7 +62,33 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     #
     # Mac OS
     #
-    # *TODO*
+    target_link_libraries(${CMAKE_PROJECT_NAME}
+        GLEW
+        GLFW
+        "-framework OpenGL"
+    )
 endif()
+
+#
+# GLEW
+#
+find_package(GLEW REQUIRED)
+if (GLEW_FOUND)
+    message("found GLEW")
+    include_directories($(GLEW_INCLUDE_DIRS))
+    link_libraries(${GLEW_LIBRARIES})
+endif()
+
+
+target_link_directories(${CMAKE_PROJECT_NAME} PUBLIC
+        "/usr/local/lib"
+        )
+
+target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC
+    /usr/local/include
+    ./source/include
+    ./source
+)
+
 
 
